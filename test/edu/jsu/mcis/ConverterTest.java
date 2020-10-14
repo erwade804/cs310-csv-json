@@ -79,7 +79,6 @@ public class ConverterTest {
 
     @Test
     public void testConvertJSONtoCSV() {
-        
         assertEquals(csvString, Converter.jsonToCsv(jsonString));
         
     }

@@ -5,6 +5,16 @@ import java.util.*;
 import com.opencsv.*;
 import org.json.simple.*;
 import org.json.simple.parser.*;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import java.util.ArrayList;
+
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Iterator;
 
 public class Converter {
     
@@ -65,21 +75,44 @@ public class Converter {
             
             CSVReader reader = new CSVReader(new StringReader(csvString));
             List<String[]> full = reader.readAll();
-            Iterator<String[]> iterator = full.iterator();
+            Iterator<String[]> iter = full.iterator();
+            JSONArray colHeaders = new JSONArray();
+            JSONObject obj = new JSONObject();
+            String[] line = iter.next();
+            for(String i : line){
+                colHeaders.add(i);
+            }
+            
+            JSONArray ids = new JSONArray();
+            JSONArray data = new JSONArray();
+            
+            while(iter.hasNext()){
+                JSONArray dataLine = new JSONArray();
+                line = iter.next();
+                ids.add(line[0]);
+                for(int i = 1; i < line.length; i++){
+                    dataLine.add(Integer.parseInt(line[i]));
+                }
+                data.add(dataLine);
+            }
+            obj.put("rowHeaders", ids);
+            obj.put("data", data);
+            obj.put("colHeaders", colHeaders);
+            results = obj.toJSONString();
             
             // INSERT YOUR CODE HERE
             
-        }        
+        }
         catch(Exception e) { return e.toString(); }
         
         return results.trim();
         
     }
+
     
     public static String jsonToCsv(String jsonString) {
         
-        String results = "";
-        
+        String result;
         try {
 
             StringWriter writer = new StringWriter();
@@ -87,11 +120,50 @@ public class Converter {
             
             // INSERT YOUR CODE HERE
             
+            JSONParser parser = new JSONParser();
+            JSONObject jsonObject = (JSONObject)parser.parse(jsonString);
+            JSONArray msg1 = (JSONArray) jsonObject.get("rowHeaders");
+            JSONArray msg2 = (JSONArray) jsonObject.get("data");
+            JSONArray msg3 = (JSONArray) jsonObject.get("colHeaders");
+            Iterator<String> id = msg1.iterator();
+            Iterator<JSONArray> data = msg2.iterator();
+            Iterator<String> colHeaders = msg3.iterator();
+            ArrayList<String> allID = new ArrayList<String>();
+            ArrayList<JSONArray> allData = new ArrayList<JSONArray>();
+            ArrayList<String> allCols = new ArrayList<String>();
+            while(id.hasNext()){
+                allID.add(id.next());
+            }
+            while(data.hasNext()){
+                allData.add(data.next());
+            }
+            while(colHeaders.hasNext()){
+                allCols.add(colHeaders.next());
+            }
+            
+            String[] cols = allCols.toArray(new String[0]);
+            csvWriter.writeNext(cols);
+            ArrayList<String[]> datas = new ArrayList<String[]>();
+            for (int i=0;i<allData.size();i++){ 
+                String[] dat = allData.get(i).toString().split(",");
+                dat[0] = dat[0].split("\[")[1];
+                dat[dat.length-1] = dat[dat.length-1].split("]")[0];
+                datas.add(dat);
+            }
+            for(int i = 0; i < datas.size(); i++){
+                String[] line = new String[datas.get(0).length+1];
+                String[] dat = datas.get(i);
+                line[0] = allID.get(i);
+                for(int j = 1; j < dat.length+1;j++){
+                    line[j] = dat[j-1];
+                }
+                csvWriter.writeNext(line);
+            }
+            result = writer.toString();
         }
         
         catch(Exception e) { return e.toString(); }
-        
-        return results.trim();
+        return result.trim();
         
     }
 

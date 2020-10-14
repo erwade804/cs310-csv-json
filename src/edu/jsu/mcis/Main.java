@@ -3,24 +3,24 @@ package edu.jsu.mcis;
 import java.io.*;
 
 public class Main {
-    
+
     public static void main(String[] args) {
-        
+
         ClassLoader loader = ClassLoader.getSystemClassLoader();
-        
+
         // Get CSV Data
-        
+
         StringBuilder csvFile = new StringBuilder();
-        
+
         try {
-            
+
             BufferedReader reader = new BufferedReader(new InputStreamReader(loader.getResourceAsStream("resources" + File.separator + "grades.csv")));
             String line;
-            
+
             while((line = reader.readLine()) != null) {
                 csvFile.append(line).append('\n');
             }
-            
+
         }
         catch(IOException e) { e.printStackTrace(); }
         
